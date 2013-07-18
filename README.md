@@ -1,4 +1,4 @@
 backbone-ts
 ===========
 
-Basic Port of Backbone to TypeScript
+BackboneTS is a port of BackboneJS code to TypeScript code.

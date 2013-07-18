@@ -1,0 +1,15 @@
+{
+  "name": "backbone-ts",
+  "version": "1.0.0",
+  "description": "Port of BackboneJS to TypeScript",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/nvivo/backbonets.git"
+  },
+  "author": "Natan Vivo",
+  "license": "MIT",
+  "devDependencies": {
+    "grunt": "~0.4.1",
+    "grunt-typescript": "~0.2.1"
+  }
+}
