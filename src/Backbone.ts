@@ -437,7 +437,7 @@ module Backbone {
                 if (success) success(model, resp, options);
                 model.trigger('sync', model, resp, options);
             };
-            wrapError(this, options);
+            Helpers.wrapError(this, options);
             return this.sync('read', this, options);
         }
 
@@ -487,7 +487,7 @@ module Backbone {
                 if (success) success(model, resp, options);
                 model.trigger('sync', model, resp, options);
             };
-            wrapError(this, options);
+            Helpers.wrapError(this, options);
 
             method = this.isNew() ? 'create' : (options.patch ? 'patch' : 'update');
             if (method === 'patch') options.attrs = attrs;
@@ -521,7 +521,7 @@ module Backbone {
                 options.success();
                 return false;
             }
-            wrapError(this, options);
+            Helpers.wrapError(this, options);
 
             var xhr = this.sync('delete', this, options);
             if (!options.wait) destroy();
@@ -532,7 +532,7 @@ module Backbone {
         // using Backbone's restful methods, override this to change the endpoint
         // that will be called.
         url() {
-            var base = _.result(this, 'urlRoot') || _.result(this.collection, 'url') || urlError();
+            var base = _.result(this, 'urlRoot') || _.result(this.collection, 'url') || Helpers.urlError();
             if (this.isNew()) return base;
             return base + (base.charAt(base.length - 1) === '/' ? '' : '/') + encodeURIComponent(this.id);
         }
@@ -882,7 +882,7 @@ module Backbone {
                 if (success) success(collection, resp, options);
                 collection.trigger('sync', collection, resp, options);
             };
-            wrapError(this, options);
+            Helpers.wrapError(this, options);
             return this.sync('read', this, options);
         }
 
@@ -1189,7 +1189,7 @@ module Backbone {
 
         // Ensure that we have a URL.
         if (!options.url) {
-            params.url = _.result(model, 'url') || urlError();
+            params.url = _.result(model, 'url') || Helpers.urlError();
         }
 
         // Ensure that we have the appropriate request data.
@@ -1604,58 +1604,61 @@ module Backbone {
 
     //#region Helpers 
 
-    // Helper function to correctly set up the prototype chain, for subclasses.
-    // Similar to `goog.inherits`, but uses a hash of prototype properties and
-    // class properties to be extended.
-    var extend = function (protoProps, staticProps) {
-        var parent = this;
-        var child;
+    module Helpers {
 
-        // The constructor function for the new subclass is either defined by you
-        // (the "constructor" property in your `extend` definition), or defaulted
-        // by us to simply call the parent's constructor.
-        if (protoProps && _.has(protoProps, 'constructor')) {
-            child = protoProps.constructor;
-        } else {
-            child = function () { return parent.apply(this, arguments); };
-        }
+        // Helper function to correctly set up the prototype chain, for subclasses.
+        // Similar to `goog.inherits`, but uses a hash of prototype properties and
+        // class properties to be extended.
+        var extend = function (protoProps, staticProps) {
+            var parent = this;
+            var child;
 
-        // Add static properties to the constructor function, if supplied.
-        _.extend(child, parent, staticProps);
+            // The constructor function for the new subclass is either defined by you
+            // (the "constructor" property in your `extend` definition), or defaulted
+            // by us to simply call the parent's constructor.
+            if (protoProps && _.has(protoProps, 'constructor')) {
+                child = protoProps.constructor;
+            } else {
+                child = function () { return parent.apply(this, arguments); };
+            }
 
-        // Set the prototype chain to inherit from `parent`, without calling
-        // `parent`'s constructor function.
-        var Surrogate = function () { this.constructor = child; };
-        Surrogate.prototype = parent.prototype;
-        child.prototype = new Surrogate;
+            // Add static properties to the constructor function, if supplied.
+            _.extend(child, parent, staticProps);
 
-        // Add prototype properties (instance properties) to the subclass,
-        // if supplied.
-        if (protoProps) _.extend(child.prototype, protoProps);
+            // Set the prototype chain to inherit from `parent`, without calling
+            // `parent`'s constructor function.
+            var Surrogate = function () { this.constructor = child; };
+            Surrogate.prototype = parent.prototype;
+            child.prototype = new Surrogate;
 
-        // Set a convenience property in case the parent's prototype is needed
-        // later.
-        child.__super__ = parent.prototype;
+            // Add prototype properties (instance properties) to the subclass,
+            // if supplied.
+            if (protoProps) _.extend(child.prototype, protoProps);
 
-        return child;
-    };
+            // Set a convenience property in case the parent's prototype is needed
+            // later.
+            child.__super__ = parent.prototype;
 
-    // Set up inheritance for the model, collection, router, view and history.
-    Model.extend = Collection.extend = Router.extend = View.extend = History.extend = extend;
-
-    // Throw an error when a URL is needed, and none is supplied.
-    var urlError = function () {
-        throw new Error('A "url" property or function must be specified');
-    };
-
-    // Wrap an optional error callback with a fallback error event.
-    var wrapError = function (model, options) {
-        var error = options.error;
-        options.error = function (resp) {
-            if (error) error(model, resp, options);
-            model.trigger('error', model, resp, options);
+            return child;
         };
-    };
+
+        // Set up inheritance for the model, collection, router, view and history.
+        Model.extend = Collection.extend = Router.extend = View.extend = History.extend = extend;
+
+        // Throw an error when a URL is needed, and none is supplied.
+        export var urlError = function () {
+            throw new Error('A "url" property or function must be specified');
+        };
+
+        // Wrap an optional error callback with a fallback error event.
+        export var wrapError = function (model, options) {
+            var error = options.error;
+            options.error = function (resp) {
+                if (error) error(model, resp, options);
+                model.trigger('error', model, resp, options);
+            };
+        };
+    }
 
     //#endregion
 }
