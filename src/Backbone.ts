@@ -6,12 +6,6 @@ module Backbone {
     declare var require;
     var _window = <any> window;
 
-    // Create local references to array methods we'll want to use later.
-    var array = [];
-    var push = array.push;
-    var slice = array.slice;
-    var splice = array.splice;
-
     // Current version of the library. Keep in sync with `package.json`.
     export var VERSION = '1.0.0';
 
@@ -118,7 +112,6 @@ module Backbone {
         // receive the true name of the event as the first argument).
         trigger(name, ...args) {
             if (!this._events) return this;
-            var args = slice.call(arguments, 1);
             if (!eventsApi(this, 'trigger', name, args)) return this;
             var events = this._events[name];
             var allEvents = this._events.all;
@@ -586,8 +579,7 @@ module Backbone {
 
     // Mix in each Underscore method as a proxy to `Model#attributes`.
     _.each(modelMethods, function (method) {
-        Model.prototype[method] = function () {
-            var args = slice.call(arguments);
+        Model.prototype[method] = function (...args) {
             args.unshift(this.attributes);
             return _[method].apply(_, args);
         };
@@ -743,10 +735,10 @@ module Backbone {
                 if (sortable) sort = true;
                 this.length += toAdd.length;
                 if (at != null) {
-                    splice.apply(this.models, [at, 0].concat(toAdd));
+                    Array.prototype.splice.apply(this.models, [at, 0].concat(toAdd));
                 } else {
                     if (order) this.models.length = 0;
-                    push.apply(this.models, order || toAdd);
+                    Array.prototype.push.apply(this.models, order || toAdd);
                 }
             }
 
@@ -811,7 +803,7 @@ module Backbone {
 
         // Slice out a sub-array of models from the collection.
         slice() {
-            return slice.apply(this.models, arguments);
+            return Array.prototype.slice.apply(this.models, arguments);
         }
 
         // Get a model from the set by id.
@@ -989,8 +981,7 @@ module Backbone {
 
     // Mix in each Underscore method as a proxy to `Collection#models`.
     _.each(methods, function (method) {
-        Collection.prototype[method] = function () {
-            var args = slice.call(arguments);
+        Collection.prototype[method] = function (...args) {
             args.unshift(this.models);
             return _[method].apply(_, args);
         };
