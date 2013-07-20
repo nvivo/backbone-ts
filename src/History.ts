@@ -2,10 +2,24 @@
 
 module Backbone {
 
-    //#region History
-
     // Backbone.History
     // ----------------
+
+    // Handles cross-browser history management, based on either
+    // [pushState](http://diveintohtml5.info/history.html) and real URLs, or
+    // [onhashchange](https://developer.mozilla.org/en-US/docs/DOM/window.onhashchange)
+    // and URL fragments. If the browser supports neither (old IE, natch),
+    // falls back to polling.
+
+    export interface HistoryStartOptions extends SilentOptions {
+        pushState?: boolean;
+        root?: string;
+    }
+
+    export interface HistoryNavigateOptions {
+        replace: boolean;
+        trigger: boolean;
+    }
 
     // Handles cross-browser history management, based on either
     // [pushState](http://diveintohtml5.info/history.html) and real URLs, or
@@ -42,7 +56,7 @@ module Backbone {
         }
 
         fragment;
-        handlers;
+        handlers: any[];
         history;
         iframe;
         location;
@@ -63,14 +77,14 @@ module Backbone {
 
         // Gets the true hash value. Cannot use location.hash directly due to bug
         // in Firefox where location.hash will always be decoded.
-        getHash(window?) {
+        getHash(window?: Window): string {
             var match = (window || this).location.href.match(/#(.*)$/);
             return match ? match[1] : '';
         }
 
         // Get the cross-browser normalized URL fragment, either from the URL,
         // the hash, or the override.
-        getFragment(fragment?, forcePushState?) {
+        getFragment(fragment?: string, forcePushState?: boolean): string {
             if (fragment == null) {
                 if (this._hasPushState || !this._wantsHashChange || forcePushState) {
                     fragment = this.location.pathname;
@@ -85,7 +99,7 @@ module Backbone {
 
         // Start the hash change handling, returning `true` if the current URL matches
         // an existing route, and `false` otherwise.
-        start(options) {
+        start(options?: HistoryStartOptions): boolean {
             if (History.started) throw new Error("Backbone.history has already been started");
             History.started = true;
 
@@ -150,7 +164,7 @@ module Backbone {
 
         // Disable Backbone.history, perhaps temporarily. Not useful in a real app,
         // but possibly useful for unit testing Routers.
-        stop() {
+        stop(): void {
             Backbone.$(window).off('popstate', this.checkUrl).off('hashchange', this.checkUrl);
             clearInterval(this._checkUrlInterval);
             History.started = false;
@@ -164,7 +178,7 @@ module Backbone {
 
         // Checks the current URL to see if it has changed, and if it has,
         // calls `loadUrl`, normalizing across the hidden iframe.
-        checkUrl(e) {
+        checkUrl(e): any {
             var current = this.getFragment();
             if (current === this.fragment && this.iframe) {
                 current = this.getFragment(this.getHash(this.iframe));
@@ -177,7 +191,7 @@ module Backbone {
         // Attempt to load the current URL fragment. If a route succeeds with a
         // match, returns `true`. If no defined routes matches the fragment,
         // returns `false`.
-        loadUrl(fragmentOverride?) {
+        loadUrl(fragmentOverride?: string): boolean {
             var fragment = this.fragment = this.getFragment(fragmentOverride);
             return _.any(this.handlers, function (handler) {
                 if (handler.route.test(fragment)) {
@@ -194,7 +208,8 @@ module Backbone {
         // The options object can contain `trigger: true` if you wish to have the
         // route callback be fired (not usually desirable), or `replace: true`, if
         // you wish to modify the current URL without adding an entry to the history.
-        navigate(fragment, options?) {
+        navigate(fragment: string, options?: HistoryNavigateOptions): any
+        navigate(fragment: string, options?: any): any {
             if (!History.started) return false;
             if (!options || options === true) options = { trigger: !!options };
 
@@ -233,7 +248,7 @@ module Backbone {
 
         // Update the hash location, either replacing the current entry, or adding
         // a new one to the browser history.
-        _updateHash(location, fragment, replace) {
+        _updateHash(location: Location, fragment: string, replace: boolean) {
             if (replace) {
                 var href = location.href.replace(/(javascript:|#).*$/, '');
                 location.replace(href + '#' + fragment);
@@ -246,6 +261,4 @@ module Backbone {
 
     // Create the default Backbone.history.
     export var history = new History();
-
-    //#endregion
 }

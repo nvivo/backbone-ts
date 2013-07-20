@@ -1,7 +1,21 @@
 ﻿/// <reference path="_references.ts" />
 
 module Backbone {
-    //#region Model
+
+    export interface ModelSetOptions extends SilentOptions, ValidateOptions { }
+
+    export interface ModelFetchOptions extends PersistenceOptions, ModelSetOptions, ParseOptions { }
+
+    export interface ModelSaveOptions extends SilentOptions, WaitOptions, ValidateOptions, ParseOptions, PersistenceOptions {
+        patch?: boolean;
+    }
+
+    export interface ModelDestroyOptions extends WaitOptions, PersistenceOptions { }
+
+    export interface ModelOptions extends ParseOptions {
+        collection?: Collection;
+        _attrs?;
+    }
 
     // Backbone.Model
     // --------------
@@ -18,12 +32,10 @@ module Backbone {
 
         static extend;
 
-        constructor(attributes, options) {
+        constructor(attributes?, options?: ModelOptions) {
             super();
 
-            if (!this.idAttribute)
-                this.idAttribute = 'id';
-
+            if (!this.idAttribute) this.idAttribute = 'id';
             var defaults;
             var attrs = attributes || {};
             options || (options = {});
@@ -40,15 +52,16 @@ module Backbone {
             this.initialize.apply(this, arguments);
         }
 
-        attributes;
-        cid;
-        collection;
+        attributes: any;
+        cid: string;
+        collection: Collection;
         id;
-        validate;
+        validate: (attributes, options) => boolean;
 
         _changing;
         _pending;
         _previousAttributes;
+        _parse;
 
         // A hash of attributes whose current and previous value differ.
         changed = null;
@@ -58,43 +71,45 @@ module Backbone {
 
         // The default name for the JSON `id` attribute is `"id"`. MongoDB and
         // CouchDB users may want to set this to `"_id"`.
-        idAttribute;
+        idAttribute: string;
 
         // Initialize is an empty function by default. Override it with your own
         // initialization logic.
-        initialize() { }
+        initialize(attributes?: any, options?: ModelOptions) { }
 
         // Return a copy of the model's `attributes` object.
-        toJSON(options) {
+        toJSON(options?: any) {
             return _.clone(this.attributes);
         }
 
         // Proxy `Backbone.sync` by default -- but override this if you need
         // custom syncing semantics for *this* particular model.
-        sync(...args) {
+        sync(...args): any {
             return Backbone.sync.apply(this, arguments);
         }
 
         // Get the value of an attribute.
-        get(attr) {
+        get(attr: string): any {
             return this.attributes[attr];
         }
 
         // Get the HTML-escaped value of an attribute.
-        escape(attr) {
+        escape(attr: string): string {
             return _.escape(this.get(attr));
         }
 
         // Returns `true` if the attribute contains a value that is not null
         // or undefined.
-        has(attr) {
+        has(attr: string): boolean {
             return this.get(attr) != null;
         }
 
         // Set a hash of model attributes on the object, firing `"change"`. This is
         // the core primitive operation of a model, updating the data and notifying
         // anyone who needs to know about the change in state. The heart of the beast.
-        set(key, val, options?) {
+        set(key: string, val: any, options?: ModelSetOptions): any
+        set(obj: any, options?: ModelSetOptions): any
+        set(key: any, val?: any, options?: any): any {
             var attr, attrs, unset, changes, silent, changing, prev, current;
             if (key == null) return this;
 
@@ -163,12 +178,12 @@ module Backbone {
 
         // Remove an attribute from the model, firing `"change"`. `unset` is a noop
         // if the attribute doesn't exist.
-        unset(attr, options) {
+        unset(attr: string, options?: SilentOptions) {
             return this.set(attr, void 0, _.extend({}, options, { unset: true }));
         }
 
         // Clear all attributes on the model, firing `"change"`.
-        clear(options) {
+        clear(options?: SilentOptions) {
             var attrs = {};
             for (var key in this.attributes) attrs[key] = void 0;
             return this.set(attrs, _.extend({}, options, { unset: true }));
@@ -176,7 +191,7 @@ module Backbone {
 
         // Determine if the model has changed since the last `"change"` event.
         // If you specify an attribute name, determine if that attribute has changed.
-        hasChanged(attr?) {
+        hasChanged(attr?: string): boolean {
             if (attr == null) return !_.isEmpty(this.changed);
             return _.has(this.changed, attr);
         }
@@ -187,7 +202,7 @@ module Backbone {
         // persisted to the server. Unset attributes will be set to undefined.
         // You can also pass an attributes object to diff against the model,
         // determining if there *would be* a change.
-        changedAttributes(diff) {
+        changedAttributes(diff: any): any {
             if (!diff) return this.hasChanged() ? _.clone(this.changed) : false;
             var val, changed = false;
             var old = this._changing ? this._previousAttributes : this.attributes;
@@ -200,21 +215,22 @@ module Backbone {
 
         // Get the previous value of an attribute, recorded at the time the last
         // `"change"` event was fired.
-        previous(attr) {
+        previous(attr: string): any {
             if (attr == null || !this._previousAttributes) return null;
             return this._previousAttributes[attr];
         }
 
         // Get all of the attributes of the model at the time of the previous
         // `"change"` event.
-        previousAttributes() {
+        previousAttributes(): any {
             return _.clone(this._previousAttributes);
         }
 
         // Fetch the model from the server. If the server's representation of the
         // model differs from its current attributes, they will be overridden,
         // triggering a `"change"` event.
-        fetch(options) {
+        fetch(options?: ModelFetchOptions): JQueryXHR
+        fetch(options?: any): JQueryXHR {
             options = options ? _.clone(options) : {};
             if (options.parse === void 0) options.parse = true;
             var model = this;
@@ -231,7 +247,8 @@ module Backbone {
         // Set a hash of model attributes, and sync the model to the server.
         // If the server returns an attributes hash that differs, the model's
         // state will be `set` again.
-        save(key, val, options) {
+        save(attributes: any, options?: ModelSaveOptions): any
+        save(key, val?, options?): any {
             var attrs, method, xhr, attributes = this.attributes;
 
             // Handle both `"key", value` and `{key: value}` -style arguments.
@@ -289,7 +306,7 @@ module Backbone {
         // Destroy this model on the server if it was already persisted.
         // Optimistically removes the model from its collection, if it has one.
         // If `wait: true` is passed, waits for the server to respond before removal.
-        destroy(options) {
+        destroy(options?: ModelDestroyOptions) {
             options = options ? _.clone(options) : {};
             var model = this;
             var success = options.success;
@@ -298,7 +315,7 @@ module Backbone {
                 model.trigger('destroy', model, model.collection, options);
             };
 
-            options.success = function (resp) {
+            (<any>options).success = function (resp) {
                 if (options.wait || model.isNew()) destroy();
                 if (success) success(model, resp, options);
                 if (!model.isNew()) model.trigger('sync', model, resp, options);
@@ -326,28 +343,28 @@ module Backbone {
 
         // **parse** converts a response into the hash of attributes to be `set` on
         // the model. The default implementation is just to pass the response along.
-        parse(resp, options) {
+        parse(resp?: any, options?: any) {
             return resp;
         }
 
         // Create a new model with identical attributes to this one.
-        clone() {
+        clone(): Model {
             return new (<any>this).constructor(this.attributes);
         }
 
         // A model is new if it has never been saved to the server, and lacks an id.
-        isNew() {
+        isNew(): boolean {
             return this.id == null;
         }
 
         // Check if the model is currently in a valid state.
-        isValid(options) {
+        isValid(options?: any): boolean {
             return this._validate({}, _.extend(options || {}, { validate: true }));
         }
 
         // Run validation against the next complete set of model attributes,
         // returning `true` if all is well. Otherwise, fire an `"invalid"` event.
-        _validate(attrs, options) {
+        _validate(attrs: any, options: any): boolean {
             if (!options.validate || !this.validate) return true;
             attrs = _.extend({}, this.attributes, attrs);
             var error = this.validationError = this.validate(attrs, options) || null;
@@ -358,7 +375,12 @@ module Backbone {
 
         /* underscore mixins */
 
-        keys; values; pairs; invert; pick; omit;
+        keys: () => string[];
+        values: () => any[];
+        pairs: () => any[];
+        invert: () => any;
+        pick: (keys: string[]) => any;
+        omit: (keys: string[]) => any;
     }
 
     // Underscore methods that we want to implement on the Model.
@@ -371,6 +393,4 @@ module Backbone {
             return _[method].apply(_, args);
         };
     });
-
-    //#endregion
 }

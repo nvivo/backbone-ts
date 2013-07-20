@@ -1,21 +1,9 @@
 ﻿/// <reference path="_references.ts" />
 
 module Backbone {
-    //#region Events
 
     // Backbone.Events
     // ---------------
-
-    // A module that can be mixed in to *any object* in order to provide it with
-    // custom events. You may bind with `on` or remove with `off` callback
-    // functions to an event; `trigger`-ing an event fires all callbacks in
-    // succession.
-    //
-    //     var object = {};
-    //     _.extend(object, Backbone.Events);
-    //     object.on('expand', function(){ alert('expanded'); });
-    //     object.trigger('expand');
-    //
 
     // Note: Backbone.Events is not a real class in BackboneJs, so it cannot be
     //       used with "extends" in TypeScript. Because of this, we declare an
@@ -29,7 +17,7 @@ module Backbone {
 
         // Bind an event to a `callback` function. Passing `"all"` will bind
         // the callback to all events fired.
-        on(name, callback, context) {
+        on(name: string, callback: (...args: any[]) => void , context?: any): any {
             if (!eventsApi(this, 'on', name, [callback, context]) || !callback) return this;
             this._events || (this._events = {});
             var events = this._events[name] || (this._events[name] = []);
@@ -39,7 +27,7 @@ module Backbone {
 
         // Bind an event to only be triggered a single time. After the first time
         // the callback is invoked, it will be removed.
-        once(name, callback, context) {
+        once(name: string, callback: (...args: any[]) => void , context?: any): any {
             if (!eventsApi(this, 'once', name, [callback, context]) || !callback) return this;
             var self = this;
             var once = _.once(function () {
@@ -54,7 +42,7 @@ module Backbone {
         // callbacks with that function. If `callback` is null, removes all
         // callbacks for the event. If `name` is null, removes all bound
         // callbacks for all events.
-        off(name, callback, context?) {
+        off(name?: string, callback?: (...args: any[]) => void , context?: any): any {
             var retain, ev, events, names, i, l, j, k;
             if (!this._events || !eventsApi(this, 'off', name, [callback, context])) return this;
             if (!name && !callback && !context) {
@@ -87,7 +75,7 @@ module Backbone {
         // passed the same arguments as `trigger` is, apart from the event name
         // (unless you're listening on `"all"`, which will cause your callback to
         // receive the true name of the event as the first argument).
-        trigger(name, ...args) {
+        trigger(name: string, ...args: any[]): any {
             if (!this._events) return this;
             if (!eventsApi(this, 'trigger', name, args)) return this;
             var events = this._events[name];
@@ -99,11 +87,11 @@ module Backbone {
 
         // Tell this object to stop listening to either specific events ... or
         // to every object it's currently listening to.
-        stopListening(obj?, name?, callback?) {
+        stopListening(obj?: any, name?: string, callback?: (...args: any[]) => void ): any {
             var listeners = this._listeners;
             if (!listeners) return this;
             var deleteListener = !name && !callback;
-            if (typeof name === 'object') callback = this;
+            if (typeof name === 'object') callback = <any> this;
             if (obj) (listeners = {})[obj._listenerId] = obj;
             for (var id in listeners) {
                 listeners[id].off(name, callback, this);
@@ -112,8 +100,10 @@ module Backbone {
             return this;
         }
 
-        listenTo: (name, callback, context) => EventBase;
-        listenToOnce: (name, callback, context) => EventBase;
+
+        // Methods created dynamically
+        listenTo(name: string, callback: (...args: any[]) => void , context?: any): any { }
+        listenToOnce(name: string, callback: (...args: any[]) => void , context?: any): any { }
     }
 
     // Regular expression used to split event strings.
@@ -177,18 +167,23 @@ module Backbone {
 
     // Declaration of actual "Backbone.Events"
 
+    // A module that can be mixed in to *any object* in order to provide it with
+    // custom events. You may bind with `on` or remove with `off` callback
+    // functions to an event; `trigger`-ing an event fires all callbacks in
+    // succession.
+    //
+    //     var object = {};
+    //     _.extend(object, Backbone.Events);
+    //     object.on('expand', function(){ alert('expanded'); });
+    //     object.trigger('expand');
+    //
+
     export var Events = {};
 
     var eventMethods = ['on', 'once', 'off', 'trigger', 'listenTo', 'listenToOnce', 'stopListening'];
-
-    _.each(eventMethods, methodName => {
-        Events[methodName] = EventBase.prototype[methodName];
-    });
+    _.each(eventMethods, methodName => Events[methodName] = EventBase.prototype[methodName]);
 
     // Allow the `Backbone` object to serve as a global event bus, for folks who
     // want global "pubsub" in a convenient place.
     _.extend(Backbone, Events);
-
-    //#endregion
-
 }

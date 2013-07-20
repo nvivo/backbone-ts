@@ -88,6 +88,11 @@ var Backbone;
             }
             return this;
         };
+
+        EventBase.prototype.listenTo = function (name, callback, context) {
+        };
+        EventBase.prototype.listenToOnce = function (name, callback, context) {
+        };
         return EventBase;
     })();
     Backbone.EventBase = EventBase;
@@ -158,9 +163,8 @@ var Backbone;
     Backbone.Events = {};
 
     var eventMethods = ['on', 'once', 'off', 'trigger', 'listenTo', 'listenToOnce', 'stopListening'];
-
     _.each(eventMethods, function (methodName) {
-        Backbone.Events[methodName] = EventBase.prototype[methodName];
+        return Backbone.Events[methodName] = EventBase.prototype[methodName];
     });
 
     _.extend(Backbone, Backbone.Events);
@@ -182,7 +186,6 @@ var Backbone;
 
             if (!this.idAttribute)
                 this.idAttribute = 'id';
-
             var defaults;
             var attrs = attributes || {};
             options || (options = {});
@@ -200,7 +203,7 @@ var Backbone;
             this.changed = {};
             this.initialize.apply(this, arguments);
         }
-        Model.prototype.initialize = function () {
+        Model.prototype.initialize = function (attributes, options) {
         };
 
         Model.prototype.toJSON = function (options) {
@@ -411,7 +414,7 @@ var Backbone;
                 model.trigger('destroy', model, model.collection, options);
             };
 
-            options.success = function (resp) {
+            (options).success = function (resp) {
                 if (options.wait || model.isNew())
                     destroy();
                 if (success)
@@ -465,6 +468,22 @@ var Backbone;
             this.trigger('invalid', this, error, _.extend(options || {}, { validationError: error }));
             return false;
         };
+
+        Model.prototype.keys = function () {
+            return;
+        };
+        Model.prototype.values = function () {
+            return;
+        };
+        Model.prototype.pairs = function () {
+            return;
+        };
+        Model.prototype.invert = function () {
+        };
+        Model.prototype.pick = function (keys) {
+        };
+        Model.prototype.omit = function (keys) {
+        };
         return Model;
     })(Backbone.EventBase);
     Backbone.Model = Model;
@@ -494,7 +513,6 @@ var Backbone;
 
             if (!this.model)
                 this.model = Backbone.Model;
-
             options || (options = {});
             if (options.model)
                 this.model = options.model;
@@ -1286,7 +1304,7 @@ var Backbone;
 var Backbone;
 (function (Backbone) {
     (function (Helpers) {
-        var extend = function (protoProps, staticProps) {
+        Helpers.extend = function (protoProps, staticProps) {
             var parent = this;
             var child;
 
@@ -1314,7 +1332,7 @@ var Backbone;
             return child;
         };
 
-        Backbone.Model.extend = Backbone.Collection.extend = Backbone.Router.extend = Backbone.View.extend = Backbone.History.extend = extend;
+        Backbone.Model.extend = Backbone.Collection.extend = Backbone.Router.extend = Backbone.View.extend = Backbone.History.extend = Helpers.extend;
 
         Helpers.urlError = function () {
             throw new Error('A "url" property or function must be specified');
@@ -1333,10 +1351,9 @@ var Backbone;
 })(Backbone || (Backbone = {}));
 var Backbone;
 (function (Backbone) {
-    var _window = window;
-
     Backbone.VERSION = '1.0.0';
 
+    var _window = window;
     Backbone.$ = _window.jQuery || _window.Zepto || _window.ender || _window.$;
 
     Backbone.emulateHTTP = false;

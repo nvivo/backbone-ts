@@ -2,7 +2,11 @@
 
 module Backbone {
 
-    //#region View
+    // Cached regex to split keys for `delegate`.
+    var delegateEventSplitter = /^(\S+)\s*(.*)$/;
+
+    // List of view options to be merged as properties.
+    var viewOptions = ['model', 'collection', 'el', 'id', 'attributes', 'className', 'tagName', 'events'];
 
     // Backbone.View
     // -------------
@@ -21,12 +25,6 @@ module Backbone {
 
     // Creating a Backbone.View creates its initial element outside of the DOM,
     // if an existing element is not provided...
-
-    // Cached regex to split keys for `delegate`.
-    var delegateEventSplitter = /^(\S+)\s*(.*)$/;
-
-    // List of view options to be merged as properties.
-    var viewOptions = ['model', 'collection', 'el', 'id', 'attributes', 'className', 'tagName', 'events'];
 
     export class View extends EventBase {
 
@@ -151,8 +149,4 @@ module Backbone {
             }
         }
     }
-
-    //#endregion
-
-
 }
