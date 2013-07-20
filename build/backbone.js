@@ -468,22 +468,6 @@ var Backbone;
             this.trigger('invalid', this, error, _.extend(options || {}, { validationError: error }));
             return false;
         };
-
-        Model.prototype.keys = function () {
-            return;
-        };
-        Model.prototype.values = function () {
-            return;
-        };
-        Model.prototype.pairs = function () {
-            return;
-        };
-        Model.prototype.invert = function () {
-        };
-        Model.prototype.pick = function (keys) {
-        };
-        Model.prototype.omit = function (keys) {
-        };
         return Model;
     })(Backbone.EventBase);
     Backbone.Model = Model;

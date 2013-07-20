@@ -64,12 +64,12 @@ declare module Backbone {
         public isNew(): boolean;
         public isValid(options?: any): boolean;
         public _validate(attrs: any, options: any): boolean;
-        public keys(): string[];
-        public values(): any[];
-        public pairs(): any[];
-        public invert(): any;
-        public pick(keys: string[]): any;
-        public omit(keys: string[]): any;
+        public keys: () => string[];
+        public values: () => any[];
+        public pairs: () => any[];
+        public invert: () => any;
+        public pick: (keys: string[]) => any;
+        public omit: (keys: string[]) => any;
     }
 }
 declare module Backbone {
