@@ -899,6 +899,10 @@ var Backbone;
         };
 
         View.prototype.initialize = function () {
+            var args = [];
+            for (var _i = 0; _i < (arguments.length - 0); _i++) {
+                args[_i] = arguments[_i + 0];
+            }
         };
 
         View.prototype.render = function () {

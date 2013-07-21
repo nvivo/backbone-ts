@@ -2,6 +2,17 @@
 
 module Backbone {
 
+    export interface ViewOptions {
+        model?: Model;
+        collection?: Collection;
+        el?: any;
+        id?: string;
+        attributes?: string;
+        className?: string;
+        tagName?: string;
+        events?: any;
+    }
+
     // Cached regex to split keys for `delegate`.
     var delegateEventSplitter = /^(\S+)\s*(.*)$/;
 
@@ -30,7 +41,7 @@ module Backbone {
 
         static extend;
 
-        constructor(options) {
+        constructor(options?: ViewOptions) {
             super();
 
             if (!this.tagName)
@@ -44,36 +55,36 @@ module Backbone {
             this.delegateEvents();
         }
 
-        className;
-        cid;
-        id;
+        className: string;
+        cid: string;
+        id: string;
 
-        $el;
-        el;
+        $el: JQuery;
+        el: HTMLElement;
 
         // The default `tagName` of a View's element is `"div"`.
-        tagName;
+        tagName: string;
 
         // jQuery delegate for element lookup, scoped to DOM elements within the
         // current view. This should be prefered to global lookups where possible.
-        $(selector) {
+        $(selector: string): JQuery {
             return this.$el.find(selector);
         }
 
         // Initialize is an empty function by default. Override it with your own
         // initialization logic.
-        initialize() { }
+        initialize(...args): void { }
 
         // **render** is the core function that your view should override, in order
         // to populate its element (`this.el`), with the appropriate HTML. The
         // convention is for **render** to always return `this`.
-        render() {
+        render(): View {
             return this;
         }
 
         // Remove this view by taking the element out of the DOM, and removing any
         // applicable Backbone.Events listeners.
-        remove() {
+        remove(): View {
             this.$el.remove();
             this.stopListening();
             return this;
@@ -81,7 +92,7 @@ module Backbone {
 
         // Change the view's element (`this.el` property), including event
         // re-delegation.
-        setElement(element, delegate) {
+        setElement(element: any, delegate?: boolean): View {
             if (this.$el) this.undelegateEvents();
             this.$el = element instanceof Backbone.$ ? element : Backbone.$(element);
             this.el = this.$el[0];
@@ -104,7 +115,7 @@ module Backbone {
         // Omitting the selector binds the event to `this.el`.
         // This only works for delegate-able events: not `focus`, `blur`, and
         // not `change`, `submit`, and `reset` in Internet Explorer.
-        delegateEvents(events?) {
+        delegateEvents(events?: any): View {
             if (!(events || (events = _.result(this, 'events')))) return this;
             this.undelegateEvents();
             for (var key in events) {
@@ -128,7 +139,7 @@ module Backbone {
         // Clears all callbacks previously bound to the view with `delegateEvents`.
         // You usually don't need to use this, but may wish to if you have multiple
         // Backbone views attached to the same DOM element.
-        undelegateEvents() {
+        undelegateEvents(): View {
             this.$el.off('.delegateEvents' + this.cid);
             return this;
         }
@@ -137,7 +148,7 @@ module Backbone {
         // If `this.el` is a string, pass it through `$()`, take the first
         // matching element, and re-assign it to `el`. Otherwise, create
         // an element from the `id`, `className` and `tagName` properties.
-        _ensureElement() {
+        _ensureElement(): void {
             if (!this.el) {
                 var attrs = _.extend({}, _.result(this, 'attributes'));
                 if (this.id) attrs.id = _.result(this, 'id');

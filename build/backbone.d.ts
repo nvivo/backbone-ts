@@ -183,21 +183,31 @@ declare module Backbone {
     }
 }
 declare module Backbone {
+    interface ViewOptions {
+        model?: Backbone.Model;
+        collection?: Backbone.Collection;
+        el?: any;
+        id?: string;
+        attributes?: string;
+        className?: string;
+        tagName?: string;
+        events?: any;
+    }
     class View extends Backbone.EventBase {
         static extend;
-        constructor(options);
-        public className;
-        public cid;
-        public id;
-        public $el;
-        public el;
-        public tagName;
-        public $(selector);
-        public initialize(): void;
+        constructor(options?: ViewOptions);
+        public className: string;
+        public cid: string;
+        public id: string;
+        public $el: JQuery;
+        public el: HTMLElement;
+        public tagName: string;
+        public $(selector: string): JQuery;
+        public initialize(...args): void;
         public render(): View;
         public remove(): View;
-        public setElement(element, delegate): View;
-        public delegateEvents(events?): View;
+        public setElement(element: any, delegate?: boolean): View;
+        public delegateEvents(events?: any): View;
         public undelegateEvents(): View;
         public _ensureElement(): void;
     }
